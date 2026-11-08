@@ -1,8 +1,8 @@
 {
   "name": "zovo-svg-viewer",
-  "displayName": "SVG Viewer & SVG Preview (Zoom, PNG Export)",
-  "description": "SVG viewer and SVG preview for VS Code: live preview beside the editor, zoom at the cursor and pan, viewBox outline, checkerboard or custom background, sprite sheet grid for <symbol>, .svgz, and PNG export at 1x to 8x. Scripts never run. Free, offline.",
-  "version": "0.1.0",
+  "displayName": "SVG Preview & SVG Viewer (PNG Export)",
+  "description": "Live preview beside the editor, zoom at the cursor, scripts never run. SVG preview and SVG viewer for VS Code: pan, viewBox outline, checkerboard or custom background, sprite sheet grid for <symbol>, .svgz, and PNG export at 1x to 8x. Free, offline.",
+  "version": "0.1.1",
   "publisher": "zovo",
   "license": "MIT",
   "icon": "icon.png",

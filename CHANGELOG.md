@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1 (2026-11-08)
+
+- Listing name and short description only: "SVG Preview & SVG Viewer (PNG Export)". No code change.
+
 ## 0.1.0
 
 - First release. Side preview with live update while you type, and an SVG Viewer editor for "Reopen Editor With..." and `.svgz` files.
