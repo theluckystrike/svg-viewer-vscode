@@ -1,0 +1,17 @@
+test/**
+samples/**
+scripts/**
+node_modules/**
+e2e-tmp/**
+**/*.map
+icon.svg
+.gitignore
+dist/**
+*.vsix
+package-lock.json
+images/*-raw.png
+.github/**
+images/viewbox-outline.png
+images/sprite-grid.png
+images/hostile-blocked.png
+images/light-theme-dark-scheme.png

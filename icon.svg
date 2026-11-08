@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#262B40"/><stop offset="1" stop-color="#1B1F2E"/></linearGradient>
+    <pattern id="ck" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="#2E344C"/><rect width="12" height="12" fill="#3A4160"/><rect x="12" y="12" width="12" height="12" fill="#3A4160"/></pattern>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="44" fill="url(#bg)"/>
+  <rect x="36" y="36" width="184" height="128" rx="10" fill="url(#ck)"/>
+  <path d="M52 140 C 84 40, 150 40, 204 120" fill="none" stroke="#FFB547" stroke-width="10" stroke-linecap="round"/>
+  <line x1="52" y1="140" x2="84" y2="58" stroke="#8FA3FF" stroke-width="4"/>
+  <line x1="204" y1="120" x2="160" y2="52" stroke="#8FA3FF" stroke-width="4"/>
+  <circle cx="84" cy="58" r="8" fill="#8FA3FF"/>
+  <circle cx="160" cy="52" r="8" fill="#8FA3FF"/>
+  <rect x="42" y="130" width="20" height="20" rx="3" fill="#FFFFFF" stroke="#FFB547" stroke-width="4"/>
+  <rect x="194" y="110" width="20" height="20" rx="3" fill="#FFFFFF" stroke="#FFB547" stroke-width="4"/>
+  <text x="128" y="222" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="700" font-size="54" letter-spacing="4" fill="#FFFFFF">SVG</text>
+</svg>

@@ -1,0 +1,276 @@
+{
+  "name": "svg-viewer",
+  "displayName": "SVG Viewer & SVG Preview (Zoom, PNG Export)",
+  "description": "SVG viewer and SVG preview for VS Code: live preview beside the editor, zoom at the cursor and pan, viewBox outline, checkerboard or custom background, sprite sheet grid for <symbol>, .svgz, and PNG export at 1x to 8x. Scripts never run. Free, offline.",
+  "version": "0.1.0",
+  "publisher": "zovo",
+  "license": "MIT",
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#1B1F2E",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.90.0",
+    "node": ">=18"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "svg",
+    "svg viewer",
+    "svg preview",
+    "svgz",
+    "svg zoom",
+    "svg to png",
+    "export png",
+    "viewbox",
+    "svg icons",
+    "svg sprite",
+    "symbol",
+    "dark mode"
+  ],
+  "main": "./src/extension.js",
+  "activationEvents": [
+    "onLanguage:xml",
+    "onWebviewPanel:svgViewer.preview"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": true
+  },
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "svgViewer.editor",
+        "displayName": "SVG Viewer",
+        "selector": [
+          {
+            "filenamePattern": "*.svg"
+          }
+        ],
+        "priority": "option"
+      },
+      {
+        "viewType": "svgViewer.svgz",
+        "displayName": "SVG Viewer",
+        "selector": [
+          {
+            "filenamePattern": "*.svgz"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "commands": [
+      {
+        "command": "svgViewer.showPreviewToSide",
+        "title": "Open Preview to the Side",
+        "category": "SVG Viewer",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "svgViewer.showPreview",
+        "title": "Open Preview",
+        "category": "SVG Viewer"
+      },
+      {
+        "command": "svgViewer.openInViewer",
+        "title": "Open in SVG Viewer",
+        "category": "SVG Viewer"
+      },
+      {
+        "command": "svgViewer.openSource",
+        "title": "Show Source",
+        "category": "SVG Viewer",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "svgViewer.openWalkthrough",
+        "title": "Get Started",
+        "category": "SVG Viewer"
+      },
+      {
+        "command": "svgViewer.supportDeveloper",
+        "title": "Support the developer",
+        "category": "SVG Viewer"
+      },
+      {
+        "command": "svgViewer.moreViewers",
+        "title": "More free viewers",
+        "category": "SVG Viewer"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "svgViewer.showPreviewToSide",
+          "when": "resourceExtname =~ /^\\.svgz?$/i && activeCustomEditorId != svgViewer.editor && activeCustomEditorId != svgViewer.svgz && activeWebviewPanelId != svgViewer.preview",
+          "group": "navigation"
+        },
+        {
+          "command": "svgViewer.openSource",
+          "when": "activeCustomEditorId == svgViewer.editor",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "svgViewer.showPreviewToSide",
+          "when": "resourceExtname =~ /^\\.svgz?$/i",
+          "group": "navigation@8"
+        },
+        {
+          "command": "svgViewer.openInViewer",
+          "when": "resourceExtname =~ /^\\.svgz?$/i",
+          "group": "navigation@9"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "svgViewer.showPreviewToSide",
+          "when": "resourceExtname =~ /^\\.svgz?$/i",
+          "group": "1_open"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "svgViewer.openSource",
+          "when": "activeCustomEditorId == svgViewer.editor"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "svgViewer.showPreviewToSide",
+        "key": "ctrl+k v",
+        "mac": "cmd+k v",
+        "when": "editorTextFocus && resourceExtname =~ /^\\.svg$/i"
+      }
+    ],
+    "configuration": {
+      "title": "SVG Viewer",
+      "properties": {
+        "svgViewer.preview.autoOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Open the preview beside the editor by itself when you open an .svg file as text."
+        },
+        "svgViewer.defaultBackground": {
+          "type": "string",
+          "enum": [
+            "checker",
+            "white",
+            "black",
+            "theme"
+          ],
+          "enumDescriptions": [
+            "A light checkerboard, so transparent areas show.",
+            "White.",
+            "Black.",
+            "The editor background of the current theme."
+          ],
+          "default": "checker",
+          "description": "Background behind the picture until you pick one in the toolbar. Your toolbar choice is kept for each workspace."
+        },
+        "svgViewer.mouseWheel": {
+          "type": "string",
+          "enum": [
+            "zoom",
+            "scroll"
+          ],
+          "enumDescriptions": [
+            "The wheel zooms at the pointer. Shift + wheel pans.",
+            "The wheel pans. Ctrl or Cmd + wheel, or a pinch, zooms."
+          ],
+          "default": "zoom",
+          "description": "What the mouse wheel does in the picture. Dragging always pans, and a trackpad pinch always zooms."
+        },
+        "svgViewer.maxFileMB": {
+          "type": "number",
+          "default": 50,
+          "minimum": 1,
+          "maximum": 400,
+          "description": "Files larger than this show their size and the first lines of facts first, and draw when you click Render it."
+        },
+        "svgViewer.askForRating": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ask at most two times for a Marketplace rating, after you have opened a few SVG files on different days. Nothing is sent anywhere."
+        },
+        "svgViewer.showSupportLinks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the small Sponsor and More free viewers links in the status line of the viewer. The change shows in files you open next. Nothing is sent anywhere."
+        }
+      }
+    },
+    "walkthroughs": [
+      {
+        "id": "svgViewer.start",
+        "title": "Get started with SVG Viewer",
+        "description": "Preview SVG files beside the editor, zoom into details and export PNGs.",
+        "steps": [
+          {
+            "id": "preview",
+            "title": "Open the preview beside the editor",
+            "description": "Open an .svg file and click the preview button in the editor title, or press Cmd+K V (Ctrl+K V). The preview follows your edits before you save.\n[Find an SVG file](command:workbench.action.quickOpen?%5B%22.svg%22%5D)",
+            "media": {
+              "image": "images/world-map.png",
+              "altText": "A world map SVG open in SVG Viewer beside its source, zoomed into Europe."
+            },
+            "completionEvents": [
+              "onCommand:svgViewer.showPreviewToSide"
+            ]
+          },
+          {
+            "id": "zoom",
+            "title": "Zoom, pan and check the viewBox",
+            "description": "Scroll to zoom at the pointer and drag to pan, at any zoom. Fit (0) and 1:1 (1) reset the view. viewBox (V) outlines the viewBox and dims what lies outside it.",
+            "media": {
+              "markdown": "walkthrough/zoom.md"
+            }
+          },
+          {
+            "id": "export",
+            "title": "Export PNG and copy",
+            "description": "Pick 1x, 2x, 4x, 8x or a width, then Save PNG or Copy PNG. Copy data URI puts the SVG on the clipboard as a data: URI for CSS or HTML.",
+            "media": {
+              "markdown": "walkthrough/export.md"
+            }
+          },
+          {
+            "id": "settings",
+            "title": "Background, wheel and size limit",
+            "description": "Pick the default background, what the mouse wheel does, and the size above which a file asks before it draws.\n[Open settings](command:workbench.action.openSettings?%5B%22svgViewer%22%5D)",
+            "media": {
+              "markdown": "walkthrough/settings.md"
+            },
+            "completionEvents": [
+              "onCommand:workbench.action.openSettings"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "package": "npx -y @vscode/vsce@3 package --no-dependencies -o dist/"
+  },
+  "homepage": "https://github.com/theluckystrike/svg-viewer-vscode#readme",
+  "bugs": {
+    "url": "https://github.com/theluckystrike/svg-viewer-vscode/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/theluckystrike/svg-viewer-vscode"
+  },
+  "sponsor": {
+    "url": "https://github.com/sponsors/theluckystrike"
+  }
+}

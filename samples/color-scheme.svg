@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="120" viewBox="0 0 240 120">
+  <style>
+    .bg { fill: #ffffff; } .fg { fill: #1b1f2e; } .ring { stroke: #e8a33d; }
+    @media (prefers-color-scheme: dark) { .bg { fill: #1b1f2e; } .fg { fill: #ffffff; } .ring { stroke: #8fa3ff; } }
+  </style>
+  <rect class="bg" width="240" height="120" rx="16"/>
+  <circle class="ring" cx="60" cy="60" r="34" fill="none" stroke-width="10"/>
+  <rect class="fg" x="112" y="38" width="100" height="14" rx="7"/>
+  <rect class="fg" x="112" y="68" width="70" height="14" rx="7"/>
+</svg>

