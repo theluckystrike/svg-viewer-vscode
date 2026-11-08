@@ -8,6 +8,7 @@
   const MARGIN = 0.25; // share of the picture shown around the viewBox when "viewBox" is on
   const SYMBOL_PARSE_LIMIT = 30 * 1024 * 1024;
   const SYMBOL_TILE_LIMIT = 3000;
+  const USE_LIMIT = 1000000; // shapes after <use> expansion; above it the picture is drawn only on request
 
   let st = vscode.getState() || {};
   const save = () => vscode.setState(st);
@@ -179,6 +180,7 @@
   }
 
   function render(keep) {
+    if (tooManyShapes()) { ++renderSeq; askToDraw(keep); return; }
     const seq = ++renderSeq;
     const url = URL.createObjectURL(new Blob([drawText(null)], { type: 'image/svg+xml' }));
     const img = new Image();
@@ -252,7 +254,7 @@
     doc = {
       text, info, W: size.w, H: size.h, assumed: size.assumed, size: m.size, unpacked: m.unpacked, svgz: m.svgz,
       hasScheme: C.hasColorScheme(text), risk: C.riskScan(text), elements: C.countElements(text), symbols, source: m.source,
-      deletedNote: '',
+      deletedNote: '', expanded: C.useExpansion(text, USE_LIMIT), force: !!(old && old.force && old.text.length === text.length),
     };
     updateLimits();
     // keep the view when the picture size is the same; otherwise keep the zoom and the centre
@@ -270,6 +272,15 @@
     if (!symbols.length && st.symbols) st.symbols = false;
     setSymbols(!!st.symbols, true);
     render(keep);
+  }
+
+  /** A few KB of nested <use> can expand to billions of shapes; Chromium then needs many GB for one image. */
+  function tooManyShapes() { return !!doc && doc.expanded > USE_LIMIT && !doc.force; }
+  function askToDraw(keep) {
+    busy.hidden = true;
+    if (pic) { pic.remove(); pic = null; if (picUrl) URL.revokeObjectURL(picUrl); picUrl = null; }
+    const go = btn('Draw anyway', 'Draw it; this can take minutes and several GB of memory', () => { doc.force = true; hideNotice(); render(keep); });
+    showNotice(`${name} would draw more than ${C.fmtNum(USE_LIMIT)} shapes, because its <use> elements copy groups that copy other groups. Drawing it can take minutes and many GB of memory, so it was not drawn. The file is ${C.fmtSize(doc.size)} with ${C.fmtNum(doc.elements)} elements.`, 'big', go);
   }
 
   function status1() {
@@ -402,6 +413,7 @@
   }
   async function exportPng(how) {
     if (!doc) return;
+    if (tooManyShapes()) { showToast('This SVG is not drawn (too many shapes after <use> expansion). Click "Draw anyway" first.', true); return; }
     if (how === 'copy') {
       // ClipboardItem with a promise keeps the click as the user gesture while the PNG is made. If the webview may
       // not write images to the clipboard, VS Code (the extension host) copies the PNG instead.
@@ -441,8 +453,8 @@
     symBuiltFor = doc;
     symGrid.textContent = '';
     const list = doc.symbols;
-    if (doc.risk.entities || doc.text.length > SYMBOL_PARSE_LIMIT) {
-      symCount.textContent = `${list.length} symbols. The tiles are not drawn for this file (${doc.risk.entities ? 'it declares XML entities' : 'it is over 30 MB'}).`;
+    if (doc.risk.entities || doc.text.length > SYMBOL_PARSE_LIMIT || doc.expanded > USE_LIMIT) {
+      symCount.textContent = `${list.length} symbols. The tiles are not drawn for this file (${doc.risk.entities ? 'it declares XML entities' : doc.expanded > USE_LIMIT ? 'its <use> elements expand to too many shapes' : 'it is over 30 MB'}).`;
       for (const s of list.slice(0, SYMBOL_TILE_LIMIT)) symGrid.append(tile(s.id, '', ''));
       return;
     }

@@ -282,6 +282,73 @@
     return n.toLocaleString('en-US', { maximumFractionDigits: Math.abs(n) >= 1000 ? 0 : Math.abs(n) >= 100 ? 1 : 2 });
   }
 
+  /**
+   * How many elements the renderer would draw once every <use> is expanded, without a DOM. A few kilobytes of
+   * nested <use> (each group uses the one before it twice) expand to billions of shapes, and Chromium then takes
+   * many GB and minutes for one image. Counts elements in each element with an id plus the <use> references
+   * inside it, then resolves the references with memoization; a reference cycle counts as 0 (browsers skip it).
+   * Stops early and returns a number over `cap` as soon as the total passes it.
+   */
+  function useExpansion(text, cap = 1e6) {
+    const t = String(text);
+    const len = t.length;
+    const ids = new Map(); // id -> { elems, uses: Map(target -> count) }
+    const root = { id: null, elems: 0, uses: new Map(), name: '' };
+    const stack = [root];
+    let nUses = 0, i = 0;
+    const attr = (s, name) => { const m = new RegExp('(?:^|\\s)' + name + '\\s*=\\s*("([^"]*)"|\'([^\']*)\')').exec(s); return m ? (m[2] != null ? m[2] : m[3]) : null; };
+    const addUse = (frame, target, n) => frame.uses.set(target, (frame.uses.get(target) || 0) + n);
+    const close = () => {
+      const f = stack.pop(); const parent = stack[stack.length - 1];
+      if (f.id && !ids.has(f.id)) ids.set(f.id, { elems: f.elems, uses: new Map(f.uses) });
+      if (parent) { parent.elems += f.elems; for (const [k, v] of f.uses) addUse(parent, k, v); }
+    };
+    while (i < len) {
+      const lt = t.indexOf('<', i);
+      if (lt < 0) break;
+      const c = t.charCodeAt(lt + 1);
+      if (c === 33) { // <! comment, CDATA, DOCTYPE
+        if (t.startsWith('<!--', lt)) { const e = t.indexOf('-->', lt + 4); i = e < 0 ? len : e + 3; continue; }
+        if (t.startsWith('<![CDATA[', lt)) { const e = t.indexOf(']]>', lt + 9); i = e < 0 ? len : e + 3; continue; }
+        const e = t.indexOf('>', lt); i = e < 0 ? len : e + 1; continue;
+      }
+      if (c === 63) { const e = t.indexOf('?>', lt); i = e < 0 ? len : e + 2; continue; } // <? ... ?>
+      const gt = t.indexOf('>', lt);
+      if (gt < 0) break;
+      i = gt + 1;
+      if (c === 47) { if (stack.length > 1) close(); continue; } // </...>
+      const body = t.slice(lt + 1, t.charCodeAt(gt - 1) === 47 ? gt - 1 : gt);
+      const m = /^([\w:.-]+)/.exec(body);
+      if (!m) continue;
+      const name = m[1].replace(/^[\w-]+:/, '').toLowerCase();
+      const frame = { id: attr(body, 'id'), elems: 1, uses: new Map(), name };
+      if (name === 'use') {
+        const href = attr(body, '(?:xlink:)?href');
+        if (href && href.trim().startsWith('#')) { addUse(frame, href.trim().slice(1), 1); nUses++; }
+      }
+      stack.push(frame);
+      if (t.charCodeAt(gt - 1) === 47) close();
+      if (stack.length > 20000) break; // deeper than any renderer draws
+    }
+    while (stack.length > 1) close();
+    if (!nUses) return root.elems;
+    const memo = new Map(), busy = new Set();
+    const count = (id) => {
+      if (memo.has(id)) return memo.get(id);
+      const e = ids.get(id);
+      if (!e || busy.has(id)) return 0;
+      busy.add(id);
+      let n = e.elems;
+      for (const [k, v] of e.uses) { n += v * count(k); if (n > cap) break; }
+      busy.delete(id);
+      memo.set(id, n);
+      return n;
+    };
+    let total = root.elems;
+    for (const [k, v] of root.uses) { total += v * count(k); if (total > cap) return total; }
+    return total;
+  }
+
   /** Whether to draw at once, ask first (over the setting), or refuse (over the hard limit). */
   function sizePlan(bytes, maxFileMB) {
     const limitMB = Number.isFinite(maxFileMB) && maxFileMB > 0 ? Math.min(maxFileMB, HARD_LIMIT_MB) : 50;
@@ -294,7 +361,7 @@
     MB, DEFAULT_W, DEFAULT_H, HARD_LIMIT_MB, MAX_CANVAS_SIDE, MAX_CANVAS_AREA,
     parseLength, parseViewBox, parsePar, findRootTag, parseAttrs, rootInfo, intrinsicSize,
     viewBoxTransform, viewBoxRect, toUser, overflowAttrs, setRootAttrs,
-    hasColorScheme, applyColorScheme, riskScan, countElements, listSymbols,
+    hasColorScheme, applyColorScheme, riskScan, countElements, listSymbols, useExpansion,
     pngSize, fitZoom, zoomLimits, zoomAt, fmtSize, fmtNum, sizePlan,
   };
 }));

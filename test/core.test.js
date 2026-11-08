@@ -148,3 +148,28 @@ test('size plan: load, ask over the setting, refuse over the hard limit', () => 
   assert.equal(C.fmtNum(1920), '1,920');
   assert.equal(C.fmtNum(972.6), '972.6');
 });
+
+test('useExpansion: nested <use> bombs are counted without a DOM; real files and cycles stay small (VER8)', () => {
+  const NS = 'xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"';
+  let bomb = `<svg ${NS}><defs><g id="a0"><rect width="1" height="1"/></g>`;
+  for (let i = 1; i < 40; i++) bomb += `<g id="a${i}"><use href="#a${i - 1}"/><use xlink:href="#a${i - 1}" x="1"/></g>`;
+  bomb += '</defs><use href="#a39"/></svg>';
+  const t0 = Date.now();
+  assert.ok(C.useExpansion(bomb, 1e6) > 1e6);
+  assert.ok(Date.now() - t0 < 200);
+  // 10 levels of doubling: 2^10 rects plus the groups and uses, well under the limit
+  let small = `<svg ${NS}><g id="b0"><rect/></g>`;
+  for (let i = 1; i <= 10; i++) small += `<g id="b${i}"><use href="#b${i - 1}"/><use href="#b${i - 1}"/></g>`;
+  small += '<use href="#b10"/></svg>';
+  const n = C.useExpansion(small, 1e6);
+  assert.ok(n > 1024 && n < 20000, String(n));
+  // a reference cycle and a missing target count as nothing
+  assert.ok(C.useExpansion(`<svg ${NS}><g id="x"><use href="#y"/></g><g id="y"><use href="#x"/></g><use href="#x"/><use href="#nope"/></svg>`, 1e6) < 20);
+  // comments, CDATA and self-closing tags
+  assert.strictEqual(C.useExpansion(`<svg ${NS}><!-- <use href="#a"/> --><![CDATA[ <g> ]]><rect/><circle/></svg>`, 1e6), 3);
+  // a sprite sheet: 500 symbols each used once
+  let sprite = `<svg ${NS}>`;
+  for (let i = 0; i < 500; i++) sprite += `<symbol id="s${i}"><path d="M0 0"/></symbol><use href="#s${i}"/>`;
+  sprite += '</svg>';
+  assert.ok(C.useExpansion(sprite, 1e6) < 3000);
+});
