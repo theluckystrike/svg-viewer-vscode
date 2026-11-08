@@ -206,6 +206,13 @@ export class VSC {
     if (!inPalette) { await this.key('z', 'KeyZ', 4, 90); await sleep(200); throw new Error('command palette lost the text for ' + label); }
     await this.key('Enter', 'Enter'); await sleep(800);
   }
+  // Change a user setting the way a user does: VS Code watches settings.json and applies it.
+  async setSetting(key, value) {
+    const f = path.join(this.ud, 'User', 'settings.json');
+    const cur = JSON.parse(fs.readFileSync(f, 'utf8'));
+    cur[key] = value; fs.writeFileSync(f, JSON.stringify(cur, null, 1));
+    await sleep(2000);
+  }
   async notifications() {
     return this.wbEval(`[...document.querySelectorAll('.notifications-toasts .notification-list-item, .notifications-center .notification-list-item')].map(n => n.textContent.trim().slice(0, 300))`);
   }

@@ -351,12 +351,16 @@ try {
   }
   await step('light theme: toolbar and status follow the VS Code theme', async () => {
     await closeAll();
-    await vs.command('Preferences: Color Theme'); await sleep(500); await vs.type('Light Modern'); await sleep(500); await vs.key('Enter', 'Enter'); await sleep(1500);
+    const colours = () => E(`JSON.stringify({ toolbar: getComputedStyle(document.querySelector('.toolbar')).backgroundColor, text: getComputedStyle(document.body).color, light: document.body.classList.contains('vscode-light') })`);
     await openText('w3c-pservers-grad-01-b.svg'); await previewSide('w3c-pservers-grad-01-b.svg'); await loaded();
-    const bg = await E(`getComputedStyle(document.querySelector('.toolbar')).backgroundColor + ' | ' + getComputedStyle(document.body).color`);
+    const dark = JSON.parse(await colours());
+    await vs.setSetting('workbench.colorTheme', 'Default Light Modern');
+    const light = JSON.parse(await vs.waitFor(async () => { const c = JSON.parse(await colours()); return c.light && JSON.stringify(c); }, 15000) || await colours());
     await shot('light-theme');
-    await vs.command('Preferences: Color Theme'); await sleep(500); await vs.type('Dark Modern'); await sleep(500); await vs.key('Enter', 'Enter'); await sleep(1000);
-    return { toolbarAndText: bg };
+    await vs.setSetting('workbench.colorTheme', 'Default Dark Modern');
+    const lum = (c) => { const m = c.match(/\d+/g).map(Number); return (m[0] + m[1] + m[2]) / 3; };
+    if (dark.light || !light.light || !(lum(light.text) < 100 && lum(dark.text) > 150) || !(lum(light.toolbar) > lum(dark.toolbar))) throw new Error(JSON.stringify({ dark, light }));
+    return { dark, light };
   });
 } finally {
   if (rewriter) try { rewriter.kill(); } catch {}

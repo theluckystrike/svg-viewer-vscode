@@ -53,7 +53,7 @@ try {
   await show('hostile-script.svg');
   await clean(); await vs.shot(path.join(out, 'hostile-blocked.png'));
   // 5. light theme, prefers-color-scheme set to dark
-  await vs.command('Preferences: Color Theme'); await sleep(500); await vs.type('Light Modern'); await sleep(500); await vs.key('Enter', 'Enter'); await sleep(1500);
+  await vs.setSetting('workbench.colorTheme', 'Default Light Modern');
   await show('color-scheme.svg');
   await E(`(() => { const s = document.querySelector('select[aria-label="Colour scheme"]'); s.value = 'dark'; s.dispatchEvent(new Event('change')); return 1; })()`); await sleep(800);
   await clean(); await vs.shot(path.join(out, 'light-theme-dark-scheme.png'));
